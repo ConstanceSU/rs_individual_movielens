@@ -31,18 +31,11 @@ def load_ratings():
 movies  = load_movies()
 ratings = load_ratings()
 
-# Sidebar controls
+# ─── sidebar ──────────────────────────────────────────────────
 st.sidebar.title("MovieLens Recommender")
-user_ids = movies.index # placeholder
-import pickle
 
-@st.cache_data
-def load_user_history(path="/Users/apple/Desktop/Esade/Electives/Recommender_System/DATA/ml-latest-small/ratings.csv"):
-    df = pd.read_csv(path)
-    return sorted(df['userId'].unique())
-
-users = load_user_history()
-selected_user = st.sidebar.selectbox("Select User ID", users)
+users = sorted(ratings.userId.unique())
+selected_user  = st.sidebar.selectbox("Select User ID", users)
 
 model_options = [
     "Popularity (Global Mean)",
@@ -57,9 +50,10 @@ selected_model = st.sidebar.selectbox("Recommendation Model", model_options)
 
 N = st.sidebar.slider("Number of Recommendations (Top N)", 5, 20, 10)
 
+
+# ─── main ─────────────────────────────────────────────────────
 st.title(f"Top {N} Recommendations for User {selected_user}")
 
-# Generate recommendations
 if selected_model == "Popularity (Global Mean)":
     recs = get_top_n_pop(selected_user, N)
 elif selected_model == "Movie Average":
@@ -75,19 +69,20 @@ elif selected_model == "SVD":
 else:
     recs = get_top_n_hybrid(selected_user, N)
 
-# Display
 if recs:
-    rec_df = pd.DataFrame(recs, columns=["movieId", "predicted_rating"])
-    rec_df = rec_df.merge(movies, on="movieId")[['title', 'predicted_rating']]
-    st.table(rec_df)
+    df = pd.DataFrame(recs, columns=["movieId", "pred_rating"])
+    df = df.merge(movies[["movieId", "title"]], on="movieId")
+    df = df[["title", "pred_rating"]]
+    st.table(df)
 else:
     st.write("No recommendations available for this user.")
 
-# Rating prediction widget
+# ─── rating predictor ─────────────────────────────────────────
 st.sidebar.markdown("---")
-st.sidebar.write("### Predict Rating")
+st.sidebar.write("### Predict a Single Rating")
 movie_to_pred = st.sidebar.number_input("Movie ID", min_value=1, step=1)
 if st.sidebar.button("Predict"):
     pred = predict_rating_hybrid(selected_user, movie_to_pred)
-    title = movies.loc[movies['movieId']==movie_to_pred, 'title'].squeeze() if movie_to_pred in movies['movieId'].values else "Unknown"
+    title = movies.loc[movies.movieId == movie_to_pred, "title"].squeeze() \
+            if movie_to_pred in movies.movieId.values else "Unknown"
     st.sidebar.write(f"Predicted rating for **{title}**: {pred:.2f}")
