@@ -11,9 +11,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 # ──────────── 1) Load data ────────────
-data_path = "/Users/apple/Desktop/Esade/Electives/Recommender_System/DATA/ml-latest-small/"
-movies = pd.read_csv(os.path.join(data_path, "movies.csv"))
-ratings = pd.read_csv(os.path.join(data_path, "ratings.csv"))
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, "DATA", "ml-latest-small")
+
+movies = pd.read_csv(os.path.join(DATA_DIR, "movies.csv"))
+ratings = pd.read_csv(os.path.join(DATA_DIR, "ratings.csv"))
 
 # ──────────── 2) Train/test split ────────────
 train_ratings, test_ratings = train_test_split(
